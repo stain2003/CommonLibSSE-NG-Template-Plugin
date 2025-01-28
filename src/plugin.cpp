@@ -40,7 +40,7 @@
 //
 //
 
-RE::Actor* GetNPCFormIDByEditorID(RE::StaticFunctionTag*, std::string EditorID) {
+RE::Actor* GetNPCByEditorID(RE::StaticFunctionTag*, std::string EditorID) {
     return RE::TESForm::LookupByEditorID<RE::Actor>(EditorID);
 }
 
@@ -50,7 +50,7 @@ std::string TestingPrint(RE::StaticFunctionTag*)
 }
 
 bool PapyrusFunction(RE::BSScript::IVirtualMachine* vm) {
-    vm->RegisterFunction("GetNPCFormIDByEditorID", "SkyRomanceMiscFunction", GetNPCFormIDByEditorID);
+    vm->RegisterFunction("GetNPCByEditorID", "SkyRomanceMiscFunction", GetNPCByEditorID);
 	vm->RegisterFunction("TestingPrint", "SkyRomanceMiscFunction", TestingPrint);
 	return true;
 }
