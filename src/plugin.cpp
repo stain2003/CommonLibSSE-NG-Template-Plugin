@@ -40,8 +40,8 @@
 //
 //
 
-RE::Actor* GetNPCByEditorID(RE::StaticFunctionTag*, std::string EditorID) {
-    return RE::TESForm::LookupByEditorID<RE::Actor>(EditorID);
+RE::TESForm* GetNPCByEditorID(RE::StaticFunctionTag*) {
+    return RE::TESForm::LookupByEditorID("Abelone");
 }
 
 std::string TestingPrint(RE::StaticFunctionTag*)
@@ -57,6 +57,11 @@ bool PapyrusFunction(RE::BSScript::IVirtualMachine* vm) {
 
 SKSEPluginLoad(const SKSE::LoadInterface* skse) {
 	SKSE::Init(skse);
+	SKSE::GetMessagingInterface()->RegisterListener([](SKSE::MessagingInterface::Message* message) {
+		if (message->type == SKSE::MessagingInterface::kDataLoaded)
+			RE::ConsoleLog::GetSingleton()->Print("SKYROUtil plugins init!");
+		});
+
 	SKSE::GetPapyrusInterface()->Register(PapyrusFunction);
 	return true;
 }
