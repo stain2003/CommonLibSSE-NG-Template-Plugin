@@ -24,7 +24,6 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 {
 	InventoryItemMap addedItems;
 	InventoryItemMap B = TargetNPC->GetInventory();
-
 	//Loop through the current inventory and compare items that are newly added
 	for (const auto& [item, dataB] : B) {
 		auto itA = SavedInventoryMap.find(item);
@@ -37,22 +36,31 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 		}
 	}
 
-	//Print items newly added to console log
+	//Write newly addeditems to json file
+	std::vector<std::string> ItemsKey;
+	std::vector<int> Counts;
+
+	RE::ConsoleLog::GetSingleton()->Print("Gift are given to %s:", TargetNPC->GetDisplayFullName());
 	for (const auto& [item, dataB] : addedItems)
 	{
 		const char* ItemName = item->GetFormEditorID();
 		uint32_t ItemCount = dataB.first;
-		RE::ConsoleLog::GetSingleton()->Print("Gift are given to %s:", TargetNPC->GetDisplayFullName());
-		if (ItemName != "")
+		
+		ItemsKey.push_back(ItemName);
+		Counts.push_back(ItemCount);
+		
+		//Console Log
+		if (ItemName != "" && bisDebugBuild())
 		{
 			RE::ConsoleLog::GetSingleton()->Print("%s x %d", ItemName, ItemCount);
 		}
 	}
 
+
+	//Call papyrus function to write to json file
 	auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
 
 	RE::TESForm* form = RE::TESForm::LookupByEditorID("SkyRomanceInitQuest");
-
 	auto policy = vm->GetObjectHandlePolicy();
 	RE::VMHandle handle = policy->GetHandleForObject(form->GetFormType(), form);
 
@@ -67,8 +75,7 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 	RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
 
 	if (vm->FindBoundObject(handle, scriptName.c_str(), object)) {
-		int x = 42;
-		auto args = RE::MakeFunctionArguments(std::move(x));
+		auto args = RE::MakeFunctionArguments(std::move(ItemsKey), std::move(Counts));
 		vm->DispatchMethodCall1(object, functionName, args, result);
 	}
 
