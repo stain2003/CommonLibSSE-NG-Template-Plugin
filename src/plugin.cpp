@@ -1,7 +1,11 @@
-#include "../include/NativeEditorIDFixAPI.hpp"
+//#include "../include/NativeEditorIDFixAPI.hpp"
+//#include "../Include/editorID.hpp"
+#include <string>
 
 using InventoryItemMap = RE::TESObjectREFR::InventoryItemMap;
+using _GetFormEditorID = const char* (*)(std::uint32_t);
 static InventoryItemMap SavedInventoryMap;
+
 
 bool bisDebugBuild()
 {
@@ -16,9 +20,26 @@ const RE::TESForm* GetFormByEditorID(RE::StaticFunctionTag*, const std::string r
 
 void SKSEGetNPCInventory(RE::StaticFunctionTag*, RE::Actor* TargetNPC) {
 	SavedInventoryMap = TargetNPC->GetInventory();
+	RE::ConsoleLog::GetSingleton()->Print("Showing %s's inventory:", TargetNPC->GetDisplayFullName());
+
+	//static auto tweaks = GetModuleHandle(L"po3_Tweaks");
+	//static auto func = reinterpret_cast<_GetFormEditorID>(GetProcAddress(tweaks, "GetFormEditorID"));
+
+	//for (const auto& [item, dataB] : SavedInventoryMap)
+	//{
+	//	RE::TESForm* form = RE::TESForm::LookupByID(item->GetFormID());
+	//	if (form)
+	//	{
+	//		RE::ConsoleLog::GetSingleton()->Print("Valid: %s", func(form->formID));
+	//	}
+	//	else
+	//	{
+	//		RE::ConsoleLog::GetSingleton()->Print("Failed");
+	//	}
+	//}
+
 	return;
 }
-
 
 void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 {
@@ -40,10 +61,22 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 	std::vector<std::string> ItemsKey;
 	std::vector<int> Counts;
 
+	static auto tweaks = GetModuleHandle(L"po3_Tweaks");
+	static auto func = reinterpret_cast<_GetFormEditorID>(GetProcAddress(tweaks, "GetFormEditorID"));
 	RE::ConsoleLog::GetSingleton()->Print("Gift are given to %s:", TargetNPC->GetDisplayFullName());
 	for (const auto& [item, dataB] : addedItems)
 	{
-		const char* ItemName = item->GetFormEditorID();
+		const char* ItemName;
+		if (item)
+		{
+			//ItemName = item->GetFormEditorID();
+			ItemName = func(item->formID);
+		}
+		else
+		{
+			ItemName = "NULL";
+		}
+
 		uint32_t ItemCount = dataB.first;
 		
 		ItemsKey.push_back(ItemName);
@@ -52,7 +85,7 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 		//Console Log
 		if (ItemName != "" && bisDebugBuild())
 		{
-			RE::ConsoleLog::GetSingleton()->Print("%s x %d", ItemName, ItemCount);
+			RE::ConsoleLog::GetSingleton()->Print("SKSE: %s x %d", ItemName, ItemCount);
 		}
 	}
 
