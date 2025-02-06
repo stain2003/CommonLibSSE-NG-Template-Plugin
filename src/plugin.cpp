@@ -5,7 +5,7 @@ static InventoryItemMap SavedInventoryMap;
 
 bool bisDebugBuild()
 {
-	auto DebugBuildVar = RE::TESForm::LookupByEditorID("SRK_DebugEnabled")->As<RE::TESGlobal>();
+	auto DebugBuildVar = RE::TESForm::LookupByEditorID("GVSR_DebugEnabled")->As<RE::TESGlobal>();
 	return DebugBuildVar->value == 1;
 }
 
@@ -127,6 +127,7 @@ bool PapyrusFunction(RE::BSScript::IVirtualMachine* vm) {
 	vm->RegisterFunction("TestingPrint", "SkyRomanceMiscFunction", TestingPrint);
 	vm->RegisterFunction("SKSEGetNPCInventory", "SkyRomanceMiscFunction", SKSEGetNPCInventory);
 	vm->RegisterFunction("GetAddedItems", "SkyRomanceMiscFunction", GetAddedItems);
+
 	return true;
 }
 
