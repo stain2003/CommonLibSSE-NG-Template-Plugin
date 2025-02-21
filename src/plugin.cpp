@@ -10,36 +10,13 @@ static InventoryItemMap SavedInventoryMap;
 
 bool bisDebugBuild()
 {
-	auto DebugBuildVar = RE::TESForm::LookupByEditorID("GVSR_DebugEnabled")->As<RE::TESGlobal>();
+	auto DebugBuildVar = RE::TESForm::LookupByEditorID(SKYRO::DebugEnableKey)->As<RE::TESGlobal>();
 	return DebugBuildVar->value == 1;
 }
 
 const RE::TESForm* GetFormByEditorID(RE::StaticFunctionTag*, const std::string refEditorID) {
     const RE::TESForm* NPCForm = RE::TESForm::LookupByEditorID<RE::TESForm>(refEditorID);
     return NPCForm;
-}
-
-void SKSEGetNPCInventory(RE::StaticFunctionTag*, RE::Actor* TargetNPC) {
-	SavedInventoryMap = TargetNPC->GetInventory();
-	RE::ConsoleLog::GetSingleton()->Print("Showing %s's inventory:", TargetNPC->GetDisplayFullName());
-
-	//static auto tweaks = GetModuleHandle(L"po3_Tweaks");
-	//static auto func = reinterpret_cast<_GetFormEditorID>(GetProcAddress(tweaks, "GetFormEditorID"));
-
-	//for (const auto& [item, dataB] : SavedInventoryMap)
-	//{
-	//	RE::TESForm* form = RE::TESForm::LookupByID(item->GetFormID());
-	//	if (form)
-	//	{
-	//		RE::ConsoleLog::GetSingleton()->Print("Valid: %s", func(form->formID));
-	//	}
-	//	else
-	//	{
-	//		RE::ConsoleLog::GetSingleton()->Print("Failed");
-	//	}
-	//}
-
-	return;
 }
 
 RE::Actor* SKSEGetBarterNPC(RE::StaticFunctionTag*)
@@ -49,15 +26,22 @@ RE::Actor* SKSEGetBarterNPC(RE::StaticFunctionTag*)
 		return m.get().get();
 	}
 	return nullptr;
+}
+
+void SKSEGetNPCInventory(RE::StaticFunctionTag*, RE::Actor* TargetNPC) {
+	//Saved NPC's current inventory items
+	SavedInventoryMap = TargetNPC->GetInventory();
+	RE::ConsoleLog::GetSingleton()->Print("Showing %s's inventory:", TargetNPC->GetDisplayFullName());
+
 	return;
 }
 
 void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 {
+	//Compare current inventory with saved inventory
 	InventoryItemMap addedItems;
-	InventoryItemMap B = TargetNPC->GetInventory();
-	//Loop through the current inventory and compare items that are newly added
-	for (const auto& [item, dataB] : B) {
+	InventoryItemMap Inventory = TargetNPC->GetInventory();
+	for (const auto& [item, dataB] : Inventory) {
 		auto itA = SavedInventoryMap.find(item);
 
 		std::uint32_t countB = dataB.first;
@@ -68,13 +52,13 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 		}
 	}
 
-	//Write newly addeditems to json file
+	//Get newly added items
 	std::vector<std::string> ItemsKey;
 	std::vector<int> Counts;
 
 	static auto tweaks = GetModuleHandle(L"po3_Tweaks");
 	static auto func = reinterpret_cast<_GetFormEditorID>(GetProcAddress(tweaks, "GetFormEditorID"));
-	RE::ConsoleLog::GetSingleton()->Print("Gift are given to %s:", TargetNPC->GetDisplayFullName());
+	RE::ConsoleLog::GetSingleton()->Print("[SKSE]Gift are given to %s:", TargetNPC->GetDisplayFullName());
 	for (const auto& [item, dataB] : addedItems)
 	{
 		const char* ItemName;
@@ -96,23 +80,24 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 		//Console Log
 		if (ItemName != "" && bisDebugBuild())
 		{
-			RE::ConsoleLog::GetSingleton()->Print("SKSE: %s x %d", ItemName, ItemCount);
+			RE::ConsoleLog::GetSingleton()->Print("[SKSE]%s x %d", ItemName, ItemCount);
 		}
 	}
 
 
-	//Call papyrus function to write to json file
+	//Write added items to json file
 	auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
 
-	RE::TESForm* form = RE::TESForm::LookupByEditorID("SkyRomanceInitQuest");
+	//Get quest form and get its script function
+	RE::TESForm* form = RE::TESForm::LookupByEditorID(SKYRO::MainQuest);
 	auto policy = vm->GetObjectHandlePolicy();
 	RE::VMHandle handle = policy->GetHandleForObject(form->GetFormType(), form);
 
 	if (handle == policy->EmptyHandle()) {
 		return;
 	}
-	//RE::BSFixedString scriptName = SKYRO::MainQuestScript;
-	RE::BSFixedString scriptName = "SkyRomanceInitQuestScript";
+
+	RE::BSFixedString scriptName = SKYRO::MainQuestScript;
 	RE::BSFixedString functionName = "WriteAddedItemsToJson";
 
 	RE::BSTSmartPointer<RE::BSScript::Object> object;
@@ -167,11 +152,11 @@ void TestingPrint(RE::StaticFunctionTag*)
 }
 
 bool PapyrusFunction(RE::BSScript::IVirtualMachine* vm) {
-    vm->RegisterFunction("GetFormByEditorID", "SkyRomanceMiscFunction", GetFormByEditorID);
-	vm->RegisterFunction("TestingPrint", "SkyRomanceMiscFunction", TestingPrint);
-	vm->RegisterFunction("SKSEGetNPCInventory", "SkyRomanceMiscFunction", SKSEGetNPCInventory);
-	vm->RegisterFunction("GetAddedItems", "SkyRomanceMiscFunction", GetAddedItems);
-	vm->RegisterFunction("SKSEGetBarterNPC", "SkyRomanceMiscFunction", SKSEGetBarterNPC);
+    vm->RegisterFunction("GetFormByEditorID", SKYRO::MiscScript, GetFormByEditorID);
+	//vm->RegisterFunction("TestingPrint", SKYRO::Misc, TestingPrint);
+	vm->RegisterFunction("SKSEGetNPCInventory", SKYRO::MiscScript, SKSEGetNPCInventory);
+	vm->RegisterFunction("GetAddedItems", SKYRO::MiscScript, GetAddedItems);
+	vm->RegisterFunction("SKSEGetBarterNPC", SKYRO::MiscScript, SKSEGetBarterNPC);
 
 	return true;
 }
