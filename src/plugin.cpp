@@ -42,6 +42,16 @@ void SKSEGetNPCInventory(RE::StaticFunctionTag*, RE::Actor* TargetNPC) {
 	return;
 }
 
+RE::Actor* SKSEGetBarterNPC(RE::StaticFunctionTag*)
+{
+	REL::Relocation<RE::ActorHandle*> merchant{ RELOCATION_ID(519283, 405823) };
+	if (auto m = *merchant; m) {
+		return m.get().get();
+	}
+	return nullptr;
+	return;
+}
+
 void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 {
 	InventoryItemMap addedItems;
@@ -161,6 +171,7 @@ bool PapyrusFunction(RE::BSScript::IVirtualMachine* vm) {
 	vm->RegisterFunction("TestingPrint", "SkyRomanceMiscFunction", TestingPrint);
 	vm->RegisterFunction("SKSEGetNPCInventory", "SkyRomanceMiscFunction", SKSEGetNPCInventory);
 	vm->RegisterFunction("GetAddedItems", "SkyRomanceMiscFunction", GetAddedItems);
+	vm->RegisterFunction("SKSEGetBarterNPC", "SkyRomanceMiscFunction", SKSEGetBarterNPC);
 
 	return true;
 }
