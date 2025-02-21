@@ -1,6 +1,7 @@
 //#include "../include/NativeEditorIDFixAPI.hpp"
 //#include "../Include/editorID.hpp"
 #include <string>
+#include "../Include/SKYRO.hpp"
 
 using InventoryItemMap = RE::TESObjectREFR::InventoryItemMap;
 using _GetFormEditorID = const char* (*)(std::uint32_t);
@@ -100,7 +101,7 @@ void GetAddedItems(RE::StaticFunctionTag*, RE::Actor* TargetNPC)
 	if (handle == policy->EmptyHandle()) {
 		return;
 	}
-
+	//RE::BSFixedString scriptName = SKYRO::MainQuestScript;
 	RE::BSFixedString scriptName = "SkyRomanceInitQuestScript";
 	RE::BSFixedString functionName = "WriteAddedItemsToJson";
 
