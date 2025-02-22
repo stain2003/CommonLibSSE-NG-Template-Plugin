@@ -27,7 +27,7 @@ endif()
 # To do this automatically, set the `SKYRIM_MODS_FOLDER` environment variable
 # to the path of your "mods" folder
 if(DEFINED ENV{SKYRIM_MODS_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_MODS_FOLDER}")
-    set(OUTPUT_FOLDER "$ENV{SKYRIM_MODS_FOLDER}/SKYRO - Skyrim Relationship Overhaul")
+    set(OUTPUT_FOLDER "$ENV{SKYRIM_MODS_FOLDER}/SKYRO---Skyrim-Relationship-Overhaul")
 endif()
 
 # Otherwise, you can set OUTPUT_FOLDER to any place you'd like :)
@@ -71,7 +71,7 @@ if(DEFINED OUTPUT_FOLDER)
         add_custom_command(
             TARGET "${PROJECT_NAME}"
             POST_BUILD
-            #COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_PDB_FILE:${PROJECT_NAME}>" "${DLL_FOLDER}/$<TARGET_PDB_FILE_NAME:${PROJECT_NAME}>"
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_PDB_FILE:${PROJECT_NAME}>" "${DLL_FOLDER}/$<TARGET_PDB_FILE_NAME:${PROJECT_NAME}>"
             VERBATIM
         )
     endif()
